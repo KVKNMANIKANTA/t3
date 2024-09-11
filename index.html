@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphabet & Number Bubble Game</title>
+    <style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-image: url("maxresdefault.jpg"); /* Start screen background */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #1b1b1b; /* Fallback color */
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
+    }
+    #login-container, #game-container, #game-over-container {
+        display: none;
+        text-align: center;
+        background-color: transparent; /* Ensure no overlay color */
+        padding: 20px;
+        border-radius: 25px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    }
+    #login-container {
+        display: block;
+    }
+    #game-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding-top: 8vh;
+        background-color: transparent; /* Ensure no overlay color */
+    }
+    #game-name {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #e63946;
+    }
+    #target-container {
+        font-size: 2em;
+        margin-bottom: 20px;
+        color: #f4a261;
+    }
+    #bubbles-container {
+        position: relative;
+        width: 100%;
+        height: 60%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
+    .bubble {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #4a4e69;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+        cursor: pointer;
+        transition: transform 0.3s, background-color 0.2s;
+    }
+    .bubble:hover {
+        transform: scale(1.2);
+        background-color: #e76f51;
+    }
+    #scoreboard, #timer, #game-over-message {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+        color: #f4a261;
+    }
+    #restart-button, #finish-button {
+        margin-top: 20px;
+        background-color: #264653;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    #restart-button:hover, #finish-button:hover {
+        background-color: #2a9d8f;
+    }
+    #start-button {
+        margin-top: 20px;
+        background-color: #C4C3E0;
+        color: white;
+        padding: 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    #start-button:hover {
+        background-color: #2a9d8f;
+    }
+</style>
+</head>
+<body>
+<div id="login-container">
+    <button id="start-button">Start Game</button>
+</div>
+
+<div id="game-container">
+    <div id="game-name">Let's Play!</div>
+    <div id="scoreboard">Points: <span id="score">0</span></div>
+    <div id="target-container">Find: <span id="target"></span></div>
+    <div id="timer">Remaining Time: <span id="time-left">20</span> sec</div>
+    <div id="bubbles-container">
+        <div class="bubble" id="bubble-1"></div>
+        <div class="bubble" id="bubble-2"></div>
+        <div class="bubble" id="bubble-3"></div>
+        <div class="bubble" id="bubble-4"></div>
+    </div>
+    <button id="finish-button">Finish</button>
+</div>
+
+<div id="game-over-container">
+    <h1>Game Over!</h1>
+    <div id="final-score">Final Points: <span id="final-points">0</span></div>
+    <button id="restart-button">Play Again</button>
+</div>
+
+<script>
+    const alphabetAndNumbers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
+    let score = 0;
+    let incorrectCount = 0;
+    const maxIncorrect = 3;
+    let roundTimeLeft = 20;
+    let totalGameTime = 300;  // 5 minutes (300 seconds)
+    let currentTarget;
+    let timerInterval;
+    let gameInProgress = false;
+
+    // Start the game
+    function startGame() {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('game-over-container').style.display = 'none';
+        document.getElementById('game-container').style.display = 'block';
+        document.body.style.backgroundImage = 'url("colorful-and-playful-numbers-bottom-border-seamless-pattern-background-perfect-for-nursery-kids-playro.jpg")'; // Game screen background
+        document.body.style.backgroundColor = 'transparent'; // Ensure no fallback color affects visibility
+        score = 0;
+        incorrectCount = 0;
+        roundTimeLeft = 20;
+        totalGameTime = 300;
+        document.getElementById('score').textContent = score;
+        generateTarget();
+        gameInProgress = true;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    // End the game
+    function endGame() {
+        clearInterval(timerInterval);
+        gameInProgress = false;
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('final-points').textContent = score;
+        document.getElementById('game-over-container').style.display = 'block';
+    }
+
+    // Update timer for both round and total game time
+    function updateTimer() {
+        roundTimeLeft--;
+        totalGameTime--;
+        document.getElementById('time-left').textContent = roundTimeLeft;
+        
+        if (roundTimeLeft <= 0) {
+            roundTimeLeft = 20;
+            incorrectCount++;
+            if (incorrectCount >= maxIncorrect || totalGameTime <= 0) {
+                endGame();
+            } else {
+                generateTarget();
+            }
+        }
+        if (totalGameTime <= 0) {
+            endGame();
+        }
+    }
+
+    // Generate a new target letter or number
+    function generateTarget() {
+        currentTarget = alphabetAndNumbers[Math.floor(Math.random() * alphabetAndNumbers.length)];
+        document.getElementById('target').textContent = currentTarget;
+        generateFixedBubbles();
+    }
+
+    // Fixed options for bubbles
+    function generateFixedBubbles() {
+        const correctBubbleIndex = Math.floor(Math.random() * 4); // One of the four bubbles will be correct
+        const bubbleElements = [
+            document.getElementById('bubble-1'),
+            document.getElementById('bubble-2'),
+            document.getElementById('bubble-3'),
+            document.getElementById('bubble-4')
+        ];
+
+        bubbleElements.forEach((bubble, index) => {
+            if (index === correctBubbleIndex) {
+                bubble.textContent = currentTarget;  // Set the correct target in one bubble
+            } else {
+                let randomChar;
+                do {
+                    randomChar = alphabetAndNumbers[Math.floor(Math.random() * alphabetAndNumbers.length)];
+                } while (randomChar === currentTarget);  // Ensure no duplicates
+                bubble.textContent = randomChar;
+            }
+            bubble.onclick = function () {
+                if (bubble.textContent === currentTarget) {
+                    score++;
+                    document.getElementById('score').textContent = score;
+                    roundTimeLeft = 20;  // Reset round timer
+                    generateTarget();
+                } else {
+                    incorrectCount++;
+                    if (incorrectCount >= maxIncorrect) {
+                        endGame();
+                    }
+                }
+            };
+        });
+    }
+
+    // Start game button
+    document.getElementById('start-button').addEventListener('click', function () {
+        startGame();
+    });
+
+    // Finish game button
+    document.getElementById('finish-button').addEventListener('click', function () {
+        endGame();
+    });
+
+    // Restart the game
+    document.getElementById('restart-button').addEventListener('click', function () {
+        startGame();
+    });
+</script>
+
+</body>
+</html>
